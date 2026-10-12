@@ -1,33 +1,47 @@
-¿En qué se convirtió cada etiqueta del JSX?
-En llamadas a funciones. Cada <div>, <h1> y <p> se volvió un createElement("div", ...) en modo clásico, o un _jsx("div", ...) / _jsxs(...) en modo automático. Los atributos como className se hicieron un objeto de props, y el texto y el {nombre} quedaron como hijos de esa función.
+# README
 
-Si React es «sólo una biblioteca», ¿quién traduce el JSX?
-El compilador, o sea SWC (también podría ser Babel o esbuild). Ni el navegador ni React saben leer JSX. React solo da las funciones (createElement, jsx) que el código ya compilado va llamando. En Vite el que hace la chamba es SWC, a través del plugin de React.
+## 1. Ver qué hace el compilador con el JSX
 
-Error sin configuración: me salió un error de sintaxis tipo Unexpected token. Expected jsx identifier. SWC por defecto lee JavaScript normal y no sabe qué es un <div> ahí en medio del código.
+**¿Qué error ocurre al compilar JSX sin configuración?**
 
-Clásico vs. automático:
+SWC marca un error de sintaxis, como `Unexpected token. Expected jsx identifier`, porque por defecto interpreta JavaScript normal y no reconoce etiquetas JSX como `<div>`.
 
-En el clásico se necesita tener React importado en el archivo, y los hijos van como argumentos extra de createElement.
-En el automático ya no hay que importar React. Importa solito jsx y jsxs desde react/jsx-runtime, y los hijos van dentro de children.
+**¿Cuál es la diferencia entre la transformación clásica y la automática de JSX?**
 
-Contenedor vacío: es el <div id="root"></div> del index.html. Lo llena src/main.tsx, que el HTML carga con <script type="module" src="/src/main.tsx">.
+En la transformación clásica, el JSX se convierte en llamadas a `React.createElement(...)`, por lo que se necesita importar React. En la automática, se utilizan `_jsx(...)` y `_jsxs(...)`, que se importan desde `react/jsx-runtime`, por lo que ya no es necesario importar React explícitamente.
 
-¿Qué hace createRoot y qué hace render?
+**¿En qué se convierte cada etiqueta del JSX después de la compilación?**
 
-createRoot crea la raíz de React y la amarra a un elemento del DOM (el #root). Básicamente le dice a React «esta parte de la página es tuya».
-render le dice a esa raíz qué mostrar. React agarra esos elementos, los convierte en nodos reales del DOM y los va actualizando si algo cambia.
+Cada etiqueta se convierte en una llamada a una función. Por ejemplo, `<div>`, `<h1>` y `<p>` se transforman en llamadas a `createElement`, `_jsx` o `_jsxs`. Los atributos se convierten en propiedades (`props`), mientras que el texto y las expresiones como `{nombre}` se representan como hijos.
 
-Error al quitar la prop obligatoria:
-Property 'nombre' is missing in type '{}' but required in type 'SaludoProps'.
-El editor me subrayó <Saludo /> en rojo.
+**Si React es solo una biblioteca, ¿quién traduce el JSX?**
 
-¿Por qué el nombre de un componente empieza con mayúscula?
-Porque así distingue el compilador qué es qué. Si lo escribes en minúscula (<saludo>), lo toma como una etiqueta HTML normal y React se pone a buscar un elemento HTML llamado «saludo», que no existe. Con mayúscula (<Saludo>), entiende que es una variable que apunta a tu función y la ejecuta como componente.
+El compilador, como SWC, Babel o esbuild, traduce el JSX a JavaScript. Ni el navegador ni React interpretan directamente la sintaxis JSX. React proporciona las funciones que utiliza el código compilado. En Vite, SWC realiza esta tarea mediante el plugin de React.
 
-¿Diferencia entre semestre="8" y semestre={8}?
+## 2. Crear el proyecto con Vite
 
-semestre="8" manda un texto ("8").
-semestre={8} manda un número (8), porque las llaves le dicen que lo que va adentro es JavaScript.
+**¿Qué es el contenedor vacío de React y cómo se llena?**
 
-Como semestre está tipado como number, con las comillas TypeScript marca error. Y aparte, la comparación semestre >= 7 solo funciona bien con números.
+Es el elemento `<div id="root"></div>` definido en `index.html`. El archivo `src/main.tsx`, cargado mediante `<script type="module" src="/src/main.tsx">`, inicializa React y permite que este renderice la aplicación dentro del contenedor.
+
+## 3. «Hola mundo» sin JSX
+
+**¿Qué hacen `createRoot` y `render`?**
+
+`createRoot` crea la raíz de React y la vincula a un elemento del DOM, como `#root`, para definir qué parte de la página administrará React. `render` indica qué contenido debe mostrarse dentro de esa raíz y permite actualizar la interfaz cuando cambia el estado de la aplicación.
+
+## 4. El primer componente
+
+**¿Qué error ocurre al quitar una propiedad obligatoria de un componente?**
+
+TypeScript muestra el error `Property 'nombre' is missing in type '{}' but required in type 'SaludoProps'` y subraya `<Saludo />`, porque no se proporcionó la propiedad obligatoria `nombre`.
+
+**¿Por qué el nombre de un componente de React debe comenzar con mayúscula?**
+
+Porque JSX distingue los componentes de las etiquetas HTML por la primera letra. Una etiqueta en minúscula, como `<saludo>`, se interpreta como un elemento HTML, mientras que `<Saludo>` se reconoce como una referencia a un componente definido en JavaScript o TypeScript.
+
+## 5. Componentes dentro de componentes
+
+**¿Cuál es la diferencia entre `semestre="8"` y `semestre={8}`?**
+
+`semestre="8"` envía una cadena de texto (`string`), mientras que `semestre={8}` envía un número (`number`). Las llaves permiten utilizar expresiones de JavaScript dentro de JSX. Si la propiedad está tipada como `number`, TypeScript marca un error al recibir una cadena. Además, la comparación `semestre >= 7` debe realizarse con valores numéricos para evitar conversiones de tipos innecesarias.
